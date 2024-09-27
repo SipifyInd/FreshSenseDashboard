@@ -1,8 +1,8 @@
-import HomePage from "@/components/Home";
+import { SignUp } from "@/components";
 import React from "react";
 
 const page = () => {
-  return <HomePage />;
+  return <SignUp />;
 };
 
 export default page;

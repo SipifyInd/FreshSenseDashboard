@@ -9,7 +9,10 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@react-spring/web": "^9.7.4",
+    "@svgr/webpack": "^8.1.0",
     "antd": "^5.20.6",
+    "classnames": "^2.5.1",
     "firebase": "^10.13.1",
     "formik": "^2.4.6",
     "next": "14.2.9",
@@ -18,7 +21,7 @@
   },
   "devDependencies": {
     "@types/node": "^20",
-    "@types/react": "^18",
+    "@types/react": "^18.3.9",
     "@types/react-dom": "^18",
     "eslint": "^8",
     "eslint-config-next": "14.2.9",
