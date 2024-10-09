@@ -3,27 +3,61 @@
 import React from "react";
 import { Form } from "antd";
 import DynamicForm from "@/components/DynamicForm";
-import { InputType } from "@/type";
+import { InputConfig, InputType } from "@/type";
+import { useAppHooks } from "@/hooks";
+import { errorHandler, signInUserWithToken } from "@/utils";
+import { signUp } from "@/services";
+import { useMutation } from "@tanstack/react-query";
 
 const StepThree: React.FC = () => {
   const [form] = Form.useForm();
 
-  const onFinish = (values: { [key: string]: string }) => {
-    console.log("Form values:", values);
+  const {
+    appNotification: { contextHolder, openNotification },
+    appRouter,
+  } = useAppHooks();
+
+  const { mutate: signUpMutate, isPending: isSignUpPending } = useMutation({
+    mutationFn: signUp,
+    onSuccess: (data) => {
+      signInUserWithToken(data.accessToken, appRouter, openNotification);
+    },
+    onError: (error) => {
+      console.log("Failed To Get OTP:", error);
+      errorHandler(
+        error as Error,
+        "Failed To Create Account",
+        openNotification
+      );
+    },
+  });
+
+  const onFinish = async (values: { [key: string]: string }) => {
+    if (isSignUpPending) return;
+    signUpMutate({
+      userName: values.username,
+      password: values.password,
+    });
   };
 
-  const inputConfigs = [
+  const inputConfigs: InputConfig[] = [
+    {
+      label: "UserName",
+      name: "username",
+      placeholder: "Enter username",
+      rules: [{ required: true, message: "Please enter your username" }],
+    },
     {
       label: "Password",
       name: "password",
       placeholder: "Enter password",
       rules: [
         { required: true, message: "Please enter your password" },
-        { min: 8, message: "Password must be at least 8 characters" },
-        {
-          pattern: /^[a-zA-Z0-9]*$/,
-          message: "Password must contain only letters and numbers",
-        },
+        // { min: 8, message: "Password must be at least 8 characters" },
+        // {
+        //   pattern: /^[a-zA-Z0-9]*$/,
+        //   message: "Password must contain only letters and numbers",
+        // },
       ],
       inputType: "password" as InputType,
     },
@@ -47,12 +81,16 @@ const StepThree: React.FC = () => {
   ];
 
   return (
-    <DynamicForm
-      form={form}
-      inputs={inputConfigs}
-      onFinish={onFinish}
-      buttonText="Submit"
-    />
+    <>
+      {contextHolder}
+      <DynamicForm
+        form={form}
+        inputs={inputConfigs}
+        onFinish={onFinish}
+        buttonText="Submit"
+        isLoading={isSignUpPending}
+      />
+    </>
   );
 };
 
