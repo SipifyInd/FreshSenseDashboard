@@ -5,6 +5,7 @@ import React, { useState } from "react";
 import StepOne from "./subComponent/StepOne";
 import StepTwo from "./subComponent/StepTwo";
 import StepThree from "./subComponent/StepThree";
+import Link from "next/link";
 
 const SignUp = () => {
   const [stepsComplete, setStepsComplete] = useState({
@@ -52,6 +53,18 @@ const SignUp = () => {
   return (
     <div className="bg-Pale-Cyan w-full h-screen flex justify-center items-center">
       <div className="bg-white border border-gray-300 rounded-xl shadow-gray-200 shadow-lg px-7 pt-7">
+        <div className="mb-4">
+          <h1 className="font-medium text-neutral-700">Create an Account</h1>
+          <p className="text-neutral-600">
+            Already Have an Account?{" "}
+            <Link
+              href="/auth/login"
+              className="text-cyan-400 hover:text-cyan-600 underline text-sm"
+            >
+              Login
+            </Link>
+          </p>
+        </div>
         <Tab
           tabsObject={{
             tabsText: ["dash", "dash", "dash"],
