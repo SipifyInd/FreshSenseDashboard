@@ -79,7 +79,7 @@ const Tab: FC<TabProps> = ({
       classNames({
         "w-full": tabType === "straight",
       }),
-    []
+    [tabType]
   );
 
   const isStepComplete = useCallback(
