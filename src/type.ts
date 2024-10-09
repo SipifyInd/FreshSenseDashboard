@@ -12,7 +12,8 @@ export type InputType =
   | "email"
   | "radio"
   | "number"
-  | "textarea";
+  | "textarea"
+  | "otp";
 
 export type LabelAndValue = { label: string; value: string };
 
