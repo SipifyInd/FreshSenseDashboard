@@ -1,15 +1,11 @@
 "use client";
 
 import React, { ReactNode } from "react";
-
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Provider as ReduxProvider } from "react-redux";
+import store from "@/components/redux/store";
 
 const Provider = ({ children }: { children: ReactNode }) => {
-  const queryClient = new QueryClient();
-
-  return (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-  );
+  return <ReduxProvider store={store}> {children}</ReduxProvider>;
 };
 
 export default Provider;

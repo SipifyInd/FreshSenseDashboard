@@ -1,59 +1,87 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { Form } from "antd";
 import DynamicForm from "@/components/DynamicForm";
-import { InputConfig, InputType } from "@/type";
+import { InputConfig, InputType, RTKQueryError } from "@/type";
 import { useAppHooks } from "@/hooks";
 import { errorHandler, signInUserWithToken } from "@/utils";
-import { signUp } from "@/services";
-import { useMutation } from "@tanstack/react-query";
+import { useCreateAccountMutation } from "@/services/auth";
+import { setUserId } from "@/components/redux";
 
-const StepThree: React.FC = () => {
+interface StepThreeProps {
+  handleTabNavigation: (index: number, selectedTab: number) => void;
+  selectedTab: number;
+  sessionId: string;
+}
+
+const StepThree: React.FC<StepThreeProps> = ({
+  sessionId,
+  handleTabNavigation,
+  selectedTab,
+}) => {
   const [form] = Form.useForm();
 
   const {
     appNotification: { contextHolder, openNotification },
     appRouter,
+    appDispatch,
   } = useAppHooks();
 
-  const { mutate: signUpMutate, isPending: isSignUpPending } = useMutation({
-    mutationFn: signUp,
-    onSuccess: (data) => {
-      signInUserWithToken(data.accessToken, appRouter, openNotification);
-    },
-    onError: (error) => {
-      console.log("Failed To Get OTP:", error);
+  const [createAccount] = useCreateAccountMutation();
+
+  const [isLoading, setisLoading] = useState<boolean>(false);
+
+  const onFinish = async (values: { [key: string]: string }) => {
+    setisLoading(true);
+    if (isLoading) return;
+
+    if (!sessionId) {
+      openNotification(
+        "error",
+        "Invalid Session. Unable To Create Account,",
+        "Please try again later",
+        "bottomRight"
+      );
+      return;
+    }
+
+    try {
+      const { accessToken, userId } = await createAccount({
+        password: values.password,
+        sessionId,
+      }).unwrap();
+
+      appDispatch(setUserId(userId));
+
+      await signInUserWithToken(
+        accessToken,
+        appRouter,
+        openNotification,
+        false
+      );
+
+      handleTabNavigation(selectedTab + 1, selectedTab);
+    } catch (error) {
+      console.log("Failed To Create Account:", error);
       errorHandler(
-        error as Error,
+        error as RTKQueryError,
         "Failed To Create Account",
         openNotification
       );
-    },
-  });
-
-  const onFinish = async (values: { [key: string]: string }) => {
-    if (isSignUpPending) return;
-    signUpMutate({
-      userName: values.username,
-      password: values.password,
-    });
+    } finally {
+      setisLoading(false);
+    }
   };
 
   const inputConfigs: InputConfig[] = [
-    {
-      label: "UserName",
-      name: "username",
-      placeholder: "Enter username",
-      rules: [{ required: true, message: "Please enter your username" }],
-    },
     {
       label: "Password",
       name: "password",
       placeholder: "Enter password",
       rules: [
         { required: true, message: "Please enter your password" },
-        // { min: 8, message: "Password must be at least 8 characters" },
+        { min: 6, message: "Password must be at least 6 characters" },
         // {
         //   pattern: /^[a-zA-Z0-9]*$/,
         //   message: "Password must contain only letters and numbers",
@@ -88,7 +116,7 @@ const StepThree: React.FC = () => {
         inputs={inputConfigs}
         onFinish={onFinish}
         buttonText="Submit"
-        isLoading={isSignUpPending}
+        isLoading={isLoading}
       />
     </>
   );

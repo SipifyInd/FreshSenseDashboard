@@ -3,39 +3,45 @@
 
 import DynamicForm from "@/components/DynamicForm";
 import { useAppHooks } from "@/hooks";
-import { login } from "@/services";
-import { InputConfig, InputType } from "@/type";
+import { useLoginAccountMutation } from "@/services/auth";
+import { InputConfig, InputType, RTKQueryError } from "@/type";
 import { errorHandler, signInUserWithToken } from "@/utils";
-import { useMutation } from "@tanstack/react-query";
 import { Form } from "antd";
 import Link from "next/link";
-import React from "react";
+import React, { useState } from "react";
 
 const Login = () => {
   const [form] = Form.useForm();
+
+  const [loginAccount] = useLoginAccountMutation();
+
+  const [isLoading, setisLoading] = useState<boolean>(false);
 
   const {
     appRouter,
     appNotification: { contextHolder, openNotification },
   } = useAppHooks();
 
-  const { mutate: loginMutate, isPending: isLoadingPending } = useMutation({
-    mutationFn: login,
-    onSuccess: (data) => {
-      signInUserWithToken(data.accessToken, appRouter, openNotification);
-    },
-    onError: (error) => {
-      console.log("Failed Login Account", error);
-      errorHandler(error as Error, "Failed To Login Account", openNotification);
-    },
-  });
-
   const onFinish = async (values: { [key: string]: string }) => {
-    if (isLoadingPending) return;
-    loginMutate({
-      userName: values.username,
-      password: values.password,
-    });
+    setisLoading(true);
+    if (isLoading) return;
+
+    try {
+      const { accessToken } = await loginAccount({
+        userName: values.username,
+        password: values.password,
+      }).unwrap();
+      await signInUserWithToken(accessToken, appRouter, openNotification, true);
+    } catch (error) {
+      console.log("Failed Login Account", error);
+      errorHandler(
+        error as RTKQueryError,
+        "Failed To Login Account",
+        openNotification
+      );
+    } finally {
+      setisLoading(false);
+    }
   };
 
   const inputConfigs: InputConfig[] = [
@@ -79,7 +85,7 @@ const Login = () => {
               inputs={inputConfigs}
               onFinish={onFinish}
               buttonText="Login"
-              isLoading={isLoadingPending}
+              isLoading={isLoading}
             />
           </div>
         </div>

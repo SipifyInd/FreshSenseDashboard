@@ -8,7 +8,8 @@ import { AppRouterInstance, NotificationFunction } from "@/type";
 export const signInUserWithToken = async (
   accessToken: string,
   appRouter: AppRouterInstance,
-  openNotification: NotificationFunction
+  openNotification: NotificationFunction,
+  isNavigate?: boolean
 ) => {
   try {
     const userCredential = await signInWithCustomToken(auth, accessToken);
@@ -24,7 +25,7 @@ export const signInUserWithToken = async (
     });
 
     // Redirect to the dashboard
-    appRouter.replace("/dashboard");
+    if (isNavigate) appRouter.replace("/dashboard");
   } catch (error) {
     console.error("Error signing in with custom token:", error);
     errorHandler(error as Error, "Faild To SignIn.", openNotification);

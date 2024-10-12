@@ -13,6 +13,8 @@ interface DynamicFormProps {
   buttonElement?: React.ReactNode;
   isLoading?: boolean;
   extra?: React.ReactNode;
+  verifedName?: string;
+  navigateHandler?: () => void;
 }
 
 const DynamicForm: React.FC<DynamicFormProps> = ({
@@ -22,6 +24,9 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
   buttonText,
   buttonElement,
   isLoading = false,
+  extra,
+  verifedName,
+  navigateHandler,
 }) => {
   return (
     <Form form={form} onFinish={onFinish} layout="vertical" className="mt-7">
@@ -49,11 +54,14 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
               />
             )}
           </Form.Item>
+
           {input.extra && (
             <div className="flex justify-between">{input.extra}</div>
           )}
         </div>
       ))}
+
+      {extra && extra}
 
       <Form.Item>
         <div
@@ -63,9 +71,16 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
           })}
         >
           {buttonElement}
-          <Button behavior="submit" loading={isLoading}>
-            {buttonText}
-          </Button>
+
+          {verifedName ? (
+            <Button behavior="button" onClick={navigateHandler}>
+              {buttonText}
+            </Button>
+          ) : (
+            <Button behavior="submit" loading={isLoading}>
+              {buttonText}
+            </Button>
+          )}
         </div>
       </Form.Item>
     </Form>

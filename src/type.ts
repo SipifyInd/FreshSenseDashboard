@@ -41,3 +41,10 @@ export interface AccountType {
   userName: string;
   password: string;
 }
+
+export interface RTKQueryError {
+  status?: number;
+  data?: {
+    message?: string;
+  };
+}

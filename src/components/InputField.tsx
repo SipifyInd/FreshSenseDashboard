@@ -58,7 +58,11 @@ const InputField: FC<InputFieldProps> = ({
       suffix={suffix}
     />
   ) : inputType === "otp" ? (
-    <OTP value={value} onChange={(value) => onChange?.(value)} length={6} />
+    <>
+      <div className=" flex justify-center">
+        <OTP value={value} onChange={(value) => onChange?.(value)} length={6} />
+      </div>
+    </>
   ) : (
     <Input
       name={name}

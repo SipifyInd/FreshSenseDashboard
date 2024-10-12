@@ -16,6 +16,8 @@ const SignUp = () => {
 
   const [selectedTab, setSelectedTab] = useState(0);
 
+  const [sessionId, setsessionId] = useState<string>("");
+
   const handleTabNavigation = (index: number, selectedTab: number) => {
     const updatedState = { ...stepsComplete };
     const stepKey = `steps${
@@ -33,12 +35,7 @@ const SignUp = () => {
   };
 
   const SignUpStepOne = () => {
-    return (
-      <StepOne
-        handleTabNavigation={handleTabNavigation}
-        selectedTab={selectedTab}
-      />
-    );
+    return <StepOne selectedTab={selectedTab} />;
   };
 
   const SignUpStepTwo = () => {
@@ -46,6 +43,17 @@ const SignUp = () => {
       <StepTwo
         handleTabNavigation={handleTabNavigation}
         selectedTab={selectedTab}
+        setsessionId={setsessionId}
+      />
+    );
+  };
+
+  const SignUpStepThree = () => {
+    return (
+      <StepThree
+        handleTabNavigation={handleTabNavigation}
+        selectedTab={selectedTab}
+        sessionId={sessionId}
       />
     );
   };
@@ -68,7 +76,7 @@ const SignUp = () => {
         <Tab
           tabsObject={{
             tabsText: ["dash", "dash", "dash"],
-            tabComponents: [SignUpStepOne, SignUpStepTwo, StepThree],
+            tabComponents: [SignUpStepTwo, SignUpStepThree, SignUpStepOne],
           }}
           tabType="straight"
           state={stepsComplete}

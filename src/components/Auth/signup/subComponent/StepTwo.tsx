@@ -3,19 +3,23 @@
 import React, { FC, useState, useEffect, useCallback } from "react";
 import { Form } from "antd";
 import DynamicForm from "@/components/DynamicForm";
-import { InputConfig, InputType } from "@/type";
-import { getOtp, verifyOtp } from "@/services";
+import { InputConfig, InputType, RTKQueryError } from "@/type";
 import Button from "@/components/Button";
 import { errorHandler } from "@/utils";
 import { useAppHooks } from "@/hooks";
-import { useMutation } from "@tanstack/react-query";
+import { useGetOptMutation, useVerifyOptMutation } from "@/services/auth";
 
 interface StepTwoProps {
   handleTabNavigation: (index: number, selectedTab: number) => void;
   selectedTab: number;
+  setsessionId: (sessionId: string) => void;
 }
 
-const StepTwo: FC<StepTwoProps> = ({ handleTabNavigation, selectedTab }) => {
+const StepTwo: FC<StepTwoProps> = ({
+  handleTabNavigation,
+  selectedTab,
+  setsessionId,
+}) => {
   const [isSubmitOtp, setIsSubmitOtp] = useState<boolean>(false);
   const [form] = Form.useForm();
   const [resendTimer, setResendTimer] = useState<number>(30);
@@ -26,38 +30,26 @@ const StepTwo: FC<StepTwoProps> = ({ handleTabNavigation, selectedTab }) => {
     appNotification: { contextHolder, openNotification },
   } = useAppHooks();
 
-  // mutations
-  const { mutate: otpMutate, isPending: isOtpPending } = useMutation({
-    mutationFn: getOtp,
-    onSuccess: () => {
-      setWhatsAppNumber(form.getFieldValue("number"));
-      setIsSubmitOtp(true);
-      setResendTimer(30);
-      setIsTimerActive(true);
-    },
-    onError: (error) => {
-      console.log("Failed To Get OTP:", error);
-      errorHandler(error as Error, "Failed To Get OTP", openNotification);
-    },
-  });
-
-  const { mutate: otpVerifyMutate, isPending: isOtpVerifyPending } =
-    useMutation({
-      mutationFn: verifyOtp,
-      onSuccess: () => {
-        handleTabNavigation(selectedTab + 1, selectedTab);
-      },
-      onError: (error) => {
-        console.log("Failed To Verify OTP:", error);
-        errorHandler(error as Error, "Failed To Verify OTP", openNotification);
-      },
-    });
+  const [getOtp, { isLoading: isGetOptLoading }] = useGetOptMutation();
+  const [verifyOtp, { isLoading: isVerifyOptLoading }] = useVerifyOptMutation();
 
   const handleGetOtp = useCallback(
     async (values: { [key: string]: string }) => {
-      otpMutate(values.number);
+      try {
+        await getOtp({ whatsAppNumber: values.number }).unwrap();
+        setWhatsAppNumber(form.getFieldValue("number"));
+        setIsSubmitOtp(true);
+        setResendTimer(30);
+        setIsTimerActive(true);
+      } catch (error) {
+        errorHandler(
+          error as RTKQueryError,
+          "Failed To Get OTP",
+          openNotification
+        );
+      }
     },
-    [otpMutate]
+    [form, getOtp, openNotification]
   );
 
   const handleVerification = useCallback(
@@ -67,13 +59,30 @@ const StepTwo: FC<StepTwoProps> = ({ handleTabNavigation, selectedTab }) => {
           throw new Error("WhatsApp number cannot be empty.");
         }
 
-        otpVerifyMutate({ whatsAppNumber, otp: values.otp });
+        const { sessionId } = await verifyOtp({
+          whatsAppNumber,
+          otp: values.otp,
+        }).unwrap();
+
+        setsessionId(sessionId);
+        handleTabNavigation(selectedTab + 1, selectedTab);
       } catch (error) {
         console.log("Invalid WhatsApp number:", error);
-        errorHandler(error as Error, "Failed To Verify OTP", openNotification);
+        errorHandler(
+          error as RTKQueryError,
+          "Failed To Verify OTP",
+          openNotification
+        );
       }
     },
-    [otpVerifyMutate, whatsAppNumber, openNotification]
+    [
+      whatsAppNumber,
+      verifyOtp,
+      setsessionId,
+      handleTabNavigation,
+      selectedTab,
+      openNotification,
+    ]
   );
 
   // Start the timer countdown when the OTP is submitted
@@ -163,11 +172,13 @@ const StepTwo: FC<StepTwoProps> = ({ handleTabNavigation, selectedTab }) => {
         inputs={inputConfig}
         onFinish={isSubmitOtp ? handleVerification : handleGetOtp}
         buttonText={isSubmitOtp ? "Verify" : "Get OTP"}
-        isLoading={isSubmitOtp ? isOtpVerifyPending : isOtpPending}
+        isLoading={isSubmitOtp ? isVerifyOptLoading : isGetOptLoading}
         buttonElement={
-          <Button variant="text" onClick={handleBackClick}>
-            Back
-          </Button>
+          isSubmitOtp && (
+            <Button variant="text" onClick={handleBackClick}>
+              Back
+            </Button>
+          )
         }
       />
     </div>
