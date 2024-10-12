@@ -34,10 +34,6 @@ const SignUp = () => {
     setSelectedTab(index);
   };
 
-  const SignUpStepOne = () => {
-    return <StepOne selectedTab={selectedTab} />;
-  };
-
   const SignUpStepTwo = () => {
     return (
       <StepTwo
@@ -76,7 +72,7 @@ const SignUp = () => {
         <Tab
           tabsObject={{
             tabsText: ["dash", "dash", "dash"],
-            tabComponents: [SignUpStepTwo, SignUpStepThree, SignUpStepOne],
+            tabComponents: [SignUpStepTwo, SignUpStepThree, StepOne],
           }}
           tabType="straight"
           state={stepsComplete}

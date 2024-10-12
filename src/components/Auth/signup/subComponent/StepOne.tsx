@@ -8,11 +8,7 @@ import { useAppHooks } from "@/hooks";
 import { errorHandler } from "@/utils";
 import { selectAccountData } from "@/components/redux";
 
-interface StepOneProps {
-  selectedTab: number;
-}
-
-const StepOne: React.FC<StepOneProps> = ({ selectedTab }) => {
+const StepOne: React.FC = () => {
   const [form] = Form.useForm();
 
   const [verifySponsorId, { isLoading }] = useVerifySponsorIdMutation();

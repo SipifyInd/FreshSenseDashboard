@@ -7,11 +7,13 @@ import { deleteCookie } from "cookies-next";
 import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebaseConfig";
 import { errorHandler } from "@/utils";
+import { setUserId } from "../redux";
 
 const Signout = () => {
   const {
     appRouter,
     appNotification: { contextHolder, openNotification },
+    appDispatch,
   } = useAppHooks();
   const [isLoading, setisLoading] = useState<boolean>(false);
 
@@ -23,6 +25,7 @@ const Signout = () => {
 
       await signOut(auth);
 
+      appDispatch(setUserId(""));
       appRouter.replace("/auth/login");
     } catch (error) {
       console.error("Error logging out:", error);
